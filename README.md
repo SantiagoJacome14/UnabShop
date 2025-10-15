@@ -4,4 +4,4 @@
 ## Santiago Andres Jacome Velasquez
 
 
-<img src="santiago-jacome.jpg" width="400" >
+<img src="santiago-jacome.jpg" width="150" >
