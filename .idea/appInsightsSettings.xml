@@ -8,10 +8,10 @@
             <InsightsFilterSettings>
               <option name="connection">
                 <ConnectionSetting>
-                  <option name="appId" value="PLACEHOLDER" />
-                  <option name="mobileSdkAppId" value="" />
-                  <option name="projectId" value="" />
-                  <option name="projectNumber" value="" />
+                  <option name="appId" value="co.edu.unab.santiagojacome.unabshop" />
+                  <option name="mobileSdkAppId" value="1:803368057417:android:5344b8c88e899358059d98" />
+                  <option name="projectId" value="unabshop-474e4" />
+                  <option name="projectNumber" value="803368057417" />
                 </ConnectionSetting>
               </option>
               <option name="signal" value="SIGNAL_UNSPECIFIED" />

@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "803368057417",
+    "project_id": "unabshop-474e4",
+    "storage_bucket": "unabshop-474e4.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:803368057417:android:5344b8c88e899358059d98",
+        "android_client_info": {
+          "package_name": "co.edu.unab.santiagojacome.unabshop"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAc5Ysje41sou3hqOhMJOayxsRL5757ido"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
