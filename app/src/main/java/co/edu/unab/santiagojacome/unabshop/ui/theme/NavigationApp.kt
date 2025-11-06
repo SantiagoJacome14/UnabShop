@@ -6,9 +6,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.Firebase
 import com.google.firebase.auth.auth
-import co.edu.unab.santiagojacome.unabshop.ui.theme.HomeScreen
-import co.edu.unab.santiagojacome.unabshop.ui.theme.LoginScreen
-import co.edu.unab.santiagojacome.unabshop.ui.theme.RegisterScreen
 
 @Composable
 

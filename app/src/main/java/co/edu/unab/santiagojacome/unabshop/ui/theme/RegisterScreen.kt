@@ -28,7 +28,7 @@ import com.google.firebase.Firebase
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthUserCollisionException
 import com.google.firebase.auth.auth
-import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestore // Importación necesaria para Firestore
 import co.edu.unab.santiagojacome.unabshop.R
 
 import co.edu.unab.santiagojacome.unabshop.ui.theme.validateName
@@ -44,7 +44,7 @@ fun RegisterScreen(
     onSuccesfullRegister: () -> Unit = {}
 ) {
     val auth = Firebase.auth
-    val db = FirebaseFirestore.getInstance()
+    val db = FirebaseFirestore.getInstance() //  Inicialización de Firestore
     val activity = LocalView.current.context as Activity
 
     var inputName by remember { mutableStateOf("") }
@@ -177,12 +177,13 @@ fun RegisterScreen(
                     val passwordConfirmationValidation =
                         validateConfirmPassword(inputPassword, inputPasswordConfirmation)
 
+                    // Validación combinada de todos los campos
                     val isValid = listOf(
                         nameValidation.first,
                         emailValidation.first,
                         passwordValidation.first,
                         passwordConfirmationValidation.first
-                    ).all { it }
+                    ).all { it } // <<< Lógica de validación restaurada
 
                     nameError = nameValidation.second
                     emailError = emailValidation.second
@@ -190,7 +191,7 @@ fun RegisterScreen(
                     passwordConfirmationError = passwordConfirmationValidation.second
                     registerError = ""
 
-                    if (isValid) {
+                    if (isValid) { // <<< Condición 'isValid' restaurada
                         isLoading = true
                         auth.createUserWithEmailAndPassword(inputEmail, inputPassword)
                             .addOnCompleteListener(activity) { task ->
@@ -203,6 +204,7 @@ fun RegisterScreen(
                                         "fecha_creacion" to System.currentTimeMillis()
                                     )
 
+                                    // Guardar datos adicionales del usuario en Firestore
                                     db.collection("usuarios")
                                         .document(user!!.uid)
                                         .set(userData)
@@ -226,7 +228,6 @@ fun RegisterScreen(
                             }
                     } else {
                         registerError = "Verifica los campos e intenta de nuevo"
-
                     }
                 },
                 modifier = Modifier
@@ -235,7 +236,7 @@ fun RegisterScreen(
                 shape = RoundedCornerShape(12.dp),
                 colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9900))
             ) {
-                if (isLoading) {
+                if (isLoading) { // <<< Indicador de carga restaurado
                     CircularProgressIndicator(
                         color = Color.White,
                         modifier = Modifier.size(24.dp)
@@ -244,7 +245,6 @@ fun RegisterScreen(
                     Text("Registrarse", fontSize = 16.sp, color = Color.White)
                 }
             }
-
             Spacer(modifier = Modifier.height(16.dp))
         }
     }
