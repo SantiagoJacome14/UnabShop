@@ -226,6 +226,7 @@ fun RegisterScreen(
                             }
                     } else {
                         registerError = "Verifica los campos e intenta de nuevo"
+
                     }
                 },
                 modifier = Modifier
