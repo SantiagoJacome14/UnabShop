@@ -1,6 +1,5 @@
 package co.edu.unab.santiagojacome.unabshop.ui.theme
 
-
 import android.app.Activity
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -25,14 +24,13 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
 import com.google.firebase.auth.FirebaseAuthInvalidCredentialsException
 import com.google.firebase.auth.FirebaseAuthInvalidUserException
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.ktx.Firebase
+import co.edu.unab.santiagojacome.unabshop.R
 import co.edu.unab.santiagojacome.unabshop.ui.theme.validateEmail
 import co.edu.unab.santiagojacome.unabshop.ui.theme.validatePassword
-import co.edu.unab.santiagojacome.unabshop.R
-
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +38,7 @@ fun LoginScreen(
     onClickRegister: () -> Unit = {},
     onSuccessfulLogin: () -> Unit = {}
 ) {
+    // Firebase Auth (KTX)
     val auth = Firebase.auth
     val activity = LocalView.current.context as Activity
 
@@ -48,6 +47,7 @@ fun LoginScreen(
     var loginError by remember { mutableStateOf("") }
     var emailError by remember { mutableStateOf("") }
     var passwordError by remember { mutableStateOf("") }
+    var isLoading by remember { mutableStateOf(false) }
 
     Scaffold(
         modifier = Modifier
@@ -65,7 +65,7 @@ fun LoginScreen(
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Logo UNAB
+
             Image(
                 painter = painterResource(id = R.drawable.img_icon_unab),
                 contentDescription = "Logo UNAB",
@@ -74,7 +74,6 @@ fun LoginScreen(
                     .padding(bottom = 16.dp)
             )
 
-            //  Título
             Text(
                 text = "Iniciar Sesión",
                 fontSize = 28.sp,
@@ -84,23 +83,16 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            //  Campo de correo
             OutlinedTextField(
                 value = inputEmail,
                 onValueChange = { inputEmail = it },
                 label = { Text("Correo Electrónico") },
                 leadingIcon = {
-                    Icon(
-                        Icons.Default.Email,
-                        contentDescription = "Email",
-                        tint = Color(0xFF666666)
-                    )
+                    Icon(Icons.Default.Email, contentDescription = "Email", tint = Color(0xFF666666))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
-                supportingText = {
-                    if (emailError.isNotEmpty()) Text(emailError, color = Color.Red)
-                },
+                supportingText = { if (emailError.isNotEmpty()) Text(emailError, color = Color.Red) },
                 keyboardOptions = KeyboardOptions(
                     keyboardType = KeyboardType.Email,
                     capitalization = KeyboardCapitalization.None,
@@ -110,17 +102,12 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // Campo de contraseña
             OutlinedTextField(
                 value = inputPassword,
                 onValueChange = { inputPassword = it },
                 label = { Text("Contraseña") },
                 leadingIcon = {
-                    Icon(
-                        Icons.Default.Lock,
-                        contentDescription = "Contraseña",
-                        tint = Color(0xFF666666)
-                    )
+                    Icon(Icons.Default.Lock, contentDescription = "Contraseña", tint = Color(0xFF666666))
                 },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
@@ -128,9 +115,7 @@ fun LoginScreen(
                     focusedBorderColor = Color(0xFFFF9900),
                     unfocusedBorderColor = Color(0xFFCCCCCC)
                 ),
-                supportingText = {
-                    if (passwordError.isNotEmpty()) Text(passwordError, color = Color.Red)
-                },
+                supportingText = { if (passwordError.isNotEmpty()) Text(passwordError, color = Color.Red) },
                 visualTransformation = PasswordVisualTransformation(),
                 keyboardOptions = KeyboardOptions(
                     capitalization = KeyboardCapitalization.None,
@@ -141,25 +126,26 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // 🔸 Error de login
             if (loginError.isNotEmpty()) {
                 Text(loginError, color = Color.Red, modifier = Modifier.fillMaxWidth())
             }
 
-            // 🔸 Botón de iniciar sesión
             Button(
                 onClick = {
+                    // Validaciones
                     val emailValidation = validateEmail(inputEmail)
                     val passwordValidation = validatePassword(inputPassword)
-
                     val isValidEmail = emailValidation.first
                     val isValidPassword = passwordValidation.first
                     emailError = emailValidation.second
                     passwordError = passwordValidation.second
 
                     if (isValidEmail && isValidPassword) {
+                        isLoading = true
+                        loginError = ""
                         auth.signInWithEmailAndPassword(inputEmail, inputPassword)
                             .addOnCompleteListener(activity) { task ->
+                                isLoading = false
                                 if (task.isSuccessful) {
                                     onSuccessfulLogin()
                                 } else {
@@ -178,14 +164,18 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(50.dp),
                 shape = RoundedCornerShape(12.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9900))
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9900)),
+                enabled = !isLoading
             ) {
-                Text("Iniciar Sesión", fontSize = 16.sp, color = Color.White)
+                if (isLoading) {
+                    CircularProgressIndicator(color = Color.White, strokeWidth = 2.dp)
+                } else {
+                    Text("Iniciar Sesión", fontSize = 16.sp, color = Color.White)
+                }
             }
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            // 🔸 Botón de registro
             TextButton(onClick = onClickRegister) {
                 Text("¿No tienes una cuenta? Regístrate", color = Color(0xFFFF9900))
             }

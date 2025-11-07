@@ -1,55 +1,76 @@
 package co.edu.unab.santiagojacome.unabshop.ui.theme
 
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
+import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NavigationApp() {
+    val navController = rememberNavController()
+
+    Scaffold(
+        modifier = Modifier
+    ) { _ ->
+        NavGraph(navController = navController)
+    }
+}
 
 @Composable
-
-fun NavigationApp() {
-    val myNavController = rememberNavController()
-    var myStartDestination: String = "login"
-
-    val auth = Firebase.auth
-    val currentUser = auth.currentUser
-
-    if(currentUser != null){
-        myStartDestination = "home"
-    }else{
-        myStartDestination = "login"
-    }
-
+fun NavGraph(navController: NavHostController) {
     NavHost(
-        navController = myNavController,
-        startDestination = myStartDestination
-    ){
+        navController = navController,
+        startDestination = "login"
+    ) {
+        // 🔸 Pantalla de Login
         composable("login") {
-            LoginScreen(onClickRegister = {
-                myNavController.navigate("register")
-            }, onSuccessfulLogin = {
-                myNavController.navigate("home"){
-                    popUpTo("login"){inclusive = true}
+            LoginScreen(
+                onClickRegister = {
+                    navController.navigate("register")
+                },
+                onSuccessfulLogin = {
+                    navController.navigate("home") {
+                        popUpTo("login") { inclusive = true }
+                    }
                 }
-            })
+            )
         }
+
+        // 🔸 Pantalla de Registro
         composable("register") {
-            RegisterScreen(onClickBack = {
-                myNavController.popBackStack()
-            }, onSuccesfullRegister = {
-                myNavController.navigate("home"){
-                    popUpTo(0)
+            RegisterScreen(
+                onNavigateToLogin = {
+                    navController.popBackStack()
+                },
+                onSuccessfulRegister = {
+                    navController.navigate("home") {
+                        popUpTo("register") { inclusive = true }
+                    }
                 }
-            })
+            )
         }
+
+        // 🔸 Pantalla Principal (Home)
         composable("home") {
-            HomeScreen(onClickLogout = {
-                myNavController.navigate("login"){
-                    popUpTo(0)
+            HomeScreen(
+                onNavigateToAddProduct = {
+                    navController.navigate("addProduct")
                 }
-            })
+            )
+        }
+
+        // 🔸 Pantalla para agregar producto
+        composable("addProduct") {
+            AddProductScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 }

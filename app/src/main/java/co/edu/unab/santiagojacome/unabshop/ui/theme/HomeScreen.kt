@@ -3,7 +3,8 @@ package co.edu.unab.santiagojacome.unabshop.ui.theme
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Notifications
@@ -16,32 +17,30 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.ui.text.input.KeyboardType
-
-import com.google.firebase.Firebase
-import com.google.firebase.auth.auth
-import co.edu.unab.santiagojacome.unabshop.ProductoRepository
 import co.edu.unab.santiagojacome.unabshop.Producto
+import co.edu.unab.santiagojacome.unabshop.ProductoRepository
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.material.icons.automirrored.filled.ExitToApp
-
-
+import com.google.firebase.ktx.Firebase
+import com.google.firebase.auth.ktx.auth
+import com.google.firebase.firestore.FirebaseFirestore
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun HomeScreen(onClickLogout: () -> Unit = {}) {
-    val auth = Firebase.auth
-    val user = auth.currentUser
-    val repo = remember { ProductoRepository() }
+fun HomeScreen(
+    onNavigateToAddProduct: () -> Unit = {}
+) {
+    val repo = ProductoRepository()
     var productos by remember { mutableStateOf<List<Producto>>(emptyList()) }
 
-    // Campos del formulario
+
     var nombre by remember { mutableStateOf(TextFieldValue("")) }
     var descripcion by remember { mutableStateOf(TextFieldValue("")) }
     var precio by remember { mutableStateOf(TextFieldValue("")) }
+    var mensaje by remember { mutableStateOf("") }
 
-    // Cargar productos al iniciar
+
     LaunchedEffect(Unit) {
         repo.obtenerProductos { productos = it }
     }
@@ -57,132 +56,113 @@ fun HomeScreen(onClickLogout: () -> Unit = {}) {
                     )
                 },
                 actions = {
-                    IconButton(onClick = { /* TODO: Notificaciones */ }) {
+                    IconButton(onClick = { /* Notificaciones */ }) {
                         Icon(Icons.Filled.Notifications, contentDescription = "Notificaciones")
                     }
-                    IconButton(onClick = { /* TODO: Carrito */ }) {
+                    IconButton(onClick = { /* Carrito */ }) {
                         Icon(Icons.Filled.ShoppingCart, contentDescription = "Carrito")
                     }
-                    IconButton(onClick = {
-                        auth.signOut()
-                        onClickLogout()
-                    }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ExitToApp,
-                            contentDescription = "Cerrar sesión"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.mediumTopAppBarColors(
-                    containerColor = Color(0xFFFF9900),
-                    titleContentColor = Color.White,
-                    actionIconContentColor = Color.White
-                )
+
+                }
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = onNavigateToAddProduct,
+                containerColor = Color(0xFFFF9900)
+            ) {
+                Icon(Icons.Filled.ShoppingCart, contentDescription = "Agregar", tint = Color.White)
+            }
         }
-    ) { paddingValues ->
+    ) { padding ->
         Column(
             modifier = Modifier
+                .padding(padding)
                 .fillMaxSize()
                 .background(Color(0xFFF5F5F5))
-                .padding(paddingValues)
+                .padding(16.dp)
         ) {
-            if (user != null) {
-                Text(
-                    text = "Bienvenido: ${user.email}",
-                    fontSize = 18.sp,
-                    modifier = Modifier.padding(16.dp)
-                )
-            }
 
-            // 🧾 Campos del formulario
-            OutlinedTextField(
+            TextField(
                 value = nombre,
                 onValueChange = { nombre = it },
                 label = { Text("Nombre del producto") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp)
             )
-
-            OutlinedTextField(
-                value = descripcion,
-                onValueChange = { descripcion = it },
-                label = { Text("Descripción") },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
-            )
-
-            OutlinedTextField(
+            Spacer(Modifier.height(8.dp))
+            TextField(
                 value = precio,
                 onValueChange = { precio = it },
                 label = { Text("Precio") },
-                keyboardOptions = androidx.compose.foundation.text.KeyboardOptions(
-
-                        keyboardType = KeyboardType.Number
-                ),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 4.dp)
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(12.dp),
+                keyboardOptions = KeyboardOptions(keyboardType = androidx.compose.ui.text.input.KeyboardType.Number)
             )
 
-            // 🔘 Botón para agregar producto
-            Button(
-                onClick = {
-                    val numero = productos.size + 1
-                    val nombreFinal = if (nombre.text.isNotBlank())
-                        "Producto $numero: ${nombre.text}"
-                    else
-                        "Producto $numero"
-
-                    val nuevo = Producto(
-                        nombre = nombreFinal,
-                        descripcion = descripcion.text.ifBlank { "Sin descripción" },
-                        precio = precio.text.toDoubleOrNull() ?: 0.0
-                    )
-
-                    repo.agregarProducto(nuevo) { ok ->
-                        if (ok) {
-                            repo.obtenerProductos { productos = it }
-                            nombre = TextFieldValue("")
-                            descripcion = TextFieldValue("")
-                            precio = TextFieldValue("")
-                        }
-                    }
-                },
-                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9900)),
-                modifier = Modifier
-                    .padding(16.dp)
-                    .fillMaxWidth()
-            ) {
-                Text("Agregar producto", color = Color.White)
+            if (mensaje.isNotEmpty()) {
+                Spacer(Modifier.height(8.dp))
+                Text(mensaje, color = Color(0xFFFF9900))
             }
 
-            Divider(color = Color.Gray.copy(alpha = 0.3f), thickness = 1.dp)
+            Spacer(Modifier.height(16.dp))
 
-            // 📋 Lista de productos
-            LazyColumn(modifier = Modifier.padding(8.dp)) {
-                itemsIndexed(productos) { index, producto ->
+            // Botón para agregar producto
+            Button(
+                onClick = {
+                    if (nombre.text.isNotBlank() && precio.text.isNotBlank()) {
+                        val nuevo = Producto(
+                            nombre = nombre.text,
+                            descripcion = descripcion.text,
+                            precio = precio.text.toDoubleOrNull() ?: 0.0
+                        )
+                        repo.agregarProducto(nuevo) { ok ->
+                            if (ok) {
+                                repo.obtenerProductos { productos = it }
+                                nombre = TextFieldValue("")
+                                descripcion = TextFieldValue("")
+                                precio = TextFieldValue("")
+                                mensaje = "Producto agregado correctamente"
+                            } else {
+                                mensaje = "Error al agregar producto"
+                            }
+                        }
+                    } else {
+                        mensaje = "Por favor complete los campos"
+                    }
+                },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(50.dp),
+                shape = RoundedCornerShape(12.dp),
+                colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFFF9900))
+            ) {
+                Text("Agregar Producto", color = Color.White)
+            }
+
+            Spacer(Modifier.height(16.dp))
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(productos) { producto ->
                     Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(8.dp),
-                        colors = CardDefaults.cardColors(containerColor = Color.White)
+                        shape = RoundedCornerShape(12.dp),
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
                     ) {
                         Row(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(12.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween
+                                .padding(16.dp)
+                                .fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
-                                Text(
-                                    text = producto.nombre,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                                Text("Descripción: ${producto.descripcion}")
-                                Text("Precio: $${producto.precio}")
+                                Text(producto.nombre, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                                Text("$${producto.precio}", color = Color.Gray)
                             }
                             IconButton(onClick = {
                                 producto.id?.let { id ->
@@ -191,7 +171,7 @@ fun HomeScreen(onClickLogout: () -> Unit = {}) {
                                     }
                                 }
                             }) {
-                                Icon(Icons.Filled.Delete, contentDescription = "Eliminar")
+                                Icon(Icons.Default.Delete, contentDescription = "Eliminar", tint = Color.Red)
                             }
                         }
                     }
